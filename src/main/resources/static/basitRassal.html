@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistics</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+      <h2>Basit Rastgele Örnekleme</h2>
+<div class="container">
+ <div class="form-group"></div>
+ <label>Max Değer:</label>
+ <input id="max" placeholder="Maximum Değer" />
+ <label>Min Değer:</label>
+    <input id="min" placeholder="Minimum Değer" />
+    <label>X Değeri:</label>
+    <input id="x" placeholder="X Değeri" />
+    <button onclick="Value()">Basit Rassal Örnekleme Hesapla</button>
+    <p id="result"></p>
+ </div>
+ <div class="back-link">
+  <a href="index.html">Ana Menüye Dön</a>
+</div>
+  </div>
+ <footer class="footer">
+  © 2026 | İstatistik Uygulaması <br />
+  Yazılım Mühendisliği
+</footer>
+    <script>
+      function Value() {
+        let max = document.getElementById("max").value;
+        let min = document.getElementById("min").value;
+        let x = document.getElementById("x").value;
+
+        fetch("http://localhost:8080/basitRassal", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ max, min, x }),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result").innerText =
+              "Basit Rassal Örnekleme: " + data;
+          });
+      }
+    </script>
+  </body>
+</html>

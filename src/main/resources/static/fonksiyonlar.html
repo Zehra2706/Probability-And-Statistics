@@ -1,0 +1,324 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistics</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+
+    <div class="container">
+      <h2>İstatistiksel Hesaplamalar</h2>
+<div class="form-group"></div>
+      <input id="numbers" placeholder="Örn: 1,2,3,4,5" />
+      <button onclick="basitSeri()">Basit Seri ile Sırala</button>
+      <p id="result"></p>
+      <button onclick="frekansSeri()">Frekans Seri ile Sırala</button>
+      <p id="result2"></p>
+      <button onclick="frekansTablosu()">Frekans Tablosu</button>
+      <p id="result3"></p>
+      <button onclick="sendNumbers()">Aritmetik Ortalama Hesapla</button>
+      <p id="result4"></p>
+      <button onclick="medyan()">Medyan Hesapla</button>
+      <p id="result5"></p>
+      <button onclick="mod()">Mod Hesapla</button>
+      <p id="result6"></p>
+      <button onclick="geometrikOrtalama()">Geometrik Ortalama Hesapla</button>
+      <p id="result7"></p>
+      <button onclick="harmonikOrtalama()">Harmonik Ortalama Hesapla</button>
+      <p id="result8"></p>
+      <button onclick="varyans()">Varyans Hesapla</button>
+      <p id="result9"></p>
+      <button onclick="standartSapma()">Standart Sapma Hesapla</button>
+      <p id="result10"></p>
+      <button onclick="oms()">Ortalama Mutlak Sapma Hesapla</button>
+      <p id="result11"></p>
+      <button onclick="ceyreklikler()">Çeyreklikler Hesapla</button>
+      <p id="result12"></p>
+      <button onclick="carpıklık()">Çarpıklık Hesapla</button>
+      <p id="result13"></p>
+      <button onclick="basıklık()">Basıklık Hesapla</button>
+      <p id="result14"></p>
+      <button onclick="dk()">DK Hesapla</button>
+      <p id="result15"></p>
+      </div>
+      <div class="back-link">
+  <a href="index.html">Ana Menüye Dön</a>
+</div>
+    </div>
+<footer class="footer">
+  © 2026 | İstatistik Uygulaması <br />
+  Yazılım Mühendisliği
+</footer>
+    <script>
+      function basitSeri() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/basitSeri", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result").innerText =
+              "Basit Seri Sıralama: " + data;
+          });
+      }
+
+      function frekansSeri() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/frekansSeri", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result2").innerHTML =
+              "Frekans Seri Sıralama: <br>" + data;
+          });
+      }
+
+      function frekansTablosu() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/frekansTablosu", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result3").innerHTML =
+              "Frekans Tablosu: <br>" + data;
+          });
+      }
+      function sendNumbers() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/ortalama", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((avg) => {
+            document.getElementById("result4").innerText =
+              "Aritmetik Ortalama: " + avg;
+          });
+      }
+      function medyan() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/medyan", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result5").innerText = "Medyan: " + data;
+          });
+      }
+      function mod() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/mod", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result6").innerText = "Mod: " + data;
+          });
+      }
+      function geometrikOrtalama() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/geometrikOrtalama", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result7").innerText =
+              "Geometrik Ortalama: " + data;
+          });
+      }
+      function harmonikOrtalama() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/harmonikOrtalama", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result8").innerText =
+              "Harmonik Ortalama: " + data;
+          });
+      }
+      function varyans() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/varyans", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result9").innerText = "Varyans: " + data;
+          });
+      }
+      function standartSapma() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/standartSapma", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result10").innerText =
+              "Standart Sapma: " + data;
+          });
+      }
+      function oms() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/oms", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result11").innerText =
+              "Ortalama Mutlak Sapma : " + data;
+          });
+      }
+      function ceyreklikler() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/ceyreklikler", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result12").innerText =
+              "Çeyreklikler : " + data;
+          });
+      }
+      function carpıklık() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/carpıklık", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result13").innerText =
+              "Çarpıklık : " + data;
+          });
+      }
+      function basıklık() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/basıklık", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result14").innerText =
+              "Basıklık : " + data;
+          });
+      }
+      function dk() {
+        let input = document.getElementById("numbers").value;
+
+        let numbers = input.split(",").map(Number);
+
+        fetch("http://localhost:8080/dk", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(numbers),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result15").innerText = "DK : " + data;
+          });
+      }
+    </script>
+  </body>
+</html>

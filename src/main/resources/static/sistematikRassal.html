@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistics</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+    <h2>Sistematik Rastgele Örnekleme</h2>
+    <div class="container">
+      <div class="form-group">
+        <label>N Değeri:</label>
+        <input id="N" placeholder="N Değeri" />
+        <label>n Değeri:</label>
+        <input id="n" placeholder="n Değeri" />
+        <button onclick="Value()">Sistematik Rassal Örnekleme Hesapla</button>
+        <p id="result"></p>
+      </div>
+    </div>
+    <div class="back-link">
+      <a href="index.html">Ana Menüye Dön</a>
+    </div>
+
+    <footer class="footer">
+      © 2026 | İstatistik Uygulaması <br />
+      Yazılım Mühendisliği
+    </footer>
+    <script>
+      function Value() {
+        let N = Number(document.getElementById("N").value);
+        let n = Number(document.getElementById("n").value);
+
+        fetch("http://localhost:8080/sistematikRassal", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ N, n }),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result").innerText =
+              "Sistematik Rassal Örnekleme: " + data;
+          });
+      }
+    </script>
+  </body>
+</html>

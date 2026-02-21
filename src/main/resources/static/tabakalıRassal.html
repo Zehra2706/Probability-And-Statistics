@@ -1,0 +1,123 @@
+<!-- <!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Statistics</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+<div class="container">
+    <h2>Maximum, Minimum ve X Değerlerini Giriniz</h2>
+<div class="form-group">
+    <input id="max" placeholder="Maximum Değer" />
+    <input id="min" placeholder="Minimum Değer" />
+    <input id="x" placeholder="X Değeri" />
+    <button onclick="Value()">Basit Rassal Örnekleme Hesapla</button>
+    <p id="result"></p>
+     </div>
+     <div class="back-link">
+  <a href="index.html">Ana Menüye Dön</a>
+</div>
+   </div>
+ <footer class="footer">
+  © 2026 | İstatistik Uygulaması <br />
+  Yazılım Mühendisliği
+</footer>
+    <script>
+      function Value() {
+        let max = document.getElementById("max").value;
+        let min = document.getElementById("min").value;
+        let x = document.getElementById("x").value;
+
+        fetch("http://localhost:8080/basitRassal", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ max, min, x }),
+        })
+          .then((res) => res.text())
+          .then((data) => {
+            document.getElementById("result").innerText =
+              "Basit Rassal Örnekleme: " + data;
+          });
+      }
+    </script>
+  </body>
+</html> -->
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tabakalı Rastgele Örnekleme</title>
+    <link rel="stylesheet" type="text/css" href="css/style.css" />
+  </head>
+  <body>
+    <h2>Tabakalı Rastgele Örnekleme</h2>
+    <div class="container">
+      <label>Toplam Örneklem:</label>
+      <input type="number" id="sampleSize" /><br /><br />
+
+      <label>Tabaka Sayısı:</label>
+      <input type="number" id="strataCount" />
+      <button onclick="createStrata()">Oluştur</button>
+
+      <div id="strataArea"></div>
+
+      <br />
+      <button onclick="sendData()">Hesapla</button>
+
+      <pre id="result"></pre>
+    </div>
+    <div class="back-link">
+      <a href="index.html">Ana Menüye Dön</a>
+    </div>
+    <footer class="footer">
+      © 2026 | İstatistik Uygulaması <br />
+      Yazılım Mühendisliği
+    </footer>
+    <script>
+      function createStrata() {
+        const count = document.getElementById("strataCount").value;
+        const area = document.getElementById("strataArea");
+        area.innerHTML = "";
+
+        for (let i = 0; i < count; i++) {
+          area.innerHTML += `
+      <label>Tabaka ${i + 1} Kişi Sayısı:</label>
+      <input type="number" class="stratum"><br><br>
+    `;
+        }
+      }
+
+      function sendData() {
+        const sampleSize = parseInt(
+          document.getElementById("sampleSize").value,
+        );
+        const strataInputs = document.querySelectorAll(".stratum");
+
+        let strataSizes = [];
+        strataInputs.forEach((input) => {
+          strataSizes.push(parseInt(input.value));
+        });
+
+        fetch("http://localhost:8080/tabakalıRassal", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            totalSampleSize: sampleSize,
+            strataSizes: strataSizes,
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            document.getElementById("result").innerText = JSON.stringify(
+              data,
+              null,
+              2,
+            );
+          });
+      }
+    </script>
+  </body>
+</html>
