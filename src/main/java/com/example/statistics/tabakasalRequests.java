@@ -3,22 +3,40 @@ import java.util.List;
 
 public class tabakasalRequests {
 
-    private int totalSampleSize;
-    private List<Integer> strataSizes;
 
-    public int getTotalSampleSize() {
-        return totalSampleSize;
+
+    // private int totalPopulation;   // 0 → N
+    // private int sampleCount;       // kaç tane seçilecek
+    // private List<Integer> strataPercentages; // %
+
+
+    private int totalPopulation;
+    private int sampleCount;
+    private List<Integer> strataPercentages;
+
+    public int gettotalPopulation() {
+        return totalPopulation;
     }
 
-    public void setTotalSampleSize(int totalSampleSize) {
-        this.totalSampleSize = totalSampleSize;
+    public void settotalPopulation(int totalPopulation) {
+        this.totalPopulation = totalPopulation;
     }
 
-    public List<Integer> getStrataSizes() {
-        return strataSizes;
+    public int getsampleCount() {
+        return sampleCount;
     }
 
-    public void setStrataSizes(List<Integer> strataSizes) {
-        this.strataSizes = strataSizes;
+    public void setsampleCount(int sampleCount) {
+        this.sampleCount = sampleCount;
     }
+
+    public List<Integer> getstrataPercentages() {
+        return strataPercentages;
+    }
+
+    public void setstrataPercentages(List<Integer> strataPercentages) {
+        this.strataPercentages = strataPercentages;
+    }
+
+
 }

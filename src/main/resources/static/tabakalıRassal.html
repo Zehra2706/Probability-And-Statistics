@@ -55,8 +55,11 @@
   <body>
     <h2>Tabakalı Rastgele Örnekleme</h2>
     <div class="container">
-      <label>Toplam Örneklem:</label>
+      <label>Evren Hacmi(N):</label>
       <input type="number" id="sampleSize" /><br /><br />
+
+      <label>Örneklem Sayısı:</label>
+      <input type="number" id="numberofsamples" /><br /><br />
 
       <label>Tabaka Sayısı:</label>
       <input type="number" id="strataCount" />
@@ -84,38 +87,52 @@
 
         for (let i = 0; i < count; i++) {
           area.innerHTML += `
-      <label>Tabaka ${i + 1} Kişi Sayısı:</label>
-      <input type="number" class="stratum"><br><br>
-    `;
+                  <label>Tabaka ${i + 1} Boyutu:</label>
+                  <input type="number" class="stratum"><br><br>
+                `;
         }
       }
 
       function sendData() {
-        const sampleSize = parseInt(
+        const totalPopulation = parseInt(
           document.getElementById("sampleSize").value,
+        );
+        const sampleCount = parseInt(
+          document.getElementById("numberofsamples").value,
         );
         const strataInputs = document.querySelectorAll(".stratum");
 
-        let strataSizes = [];
+        let strataPercentages = [];
         strataInputs.forEach((input) => {
-          strataSizes.push(parseInt(input.value));
+          strataPercentages.push(parseInt(input.value));
         });
 
         fetch("http://localhost:8080/tabakalıRassal", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            totalSampleSize: sampleSize,
-            strataSizes: strataSizes,
+            totalPopulation: totalPopulation,
+            sampleCount: sampleCount,
+            strataPercentages: strataPercentages,
           }),
         })
-          .then((res) => res.json())
+          .then((res) => {
+            if (!res.ok) {
+              return res.text().then((err) => {
+                throw new Error(err);
+              });
+            }
+            return res.json();
+          })
           .then((data) => {
             document.getElementById("result").innerText = JSON.stringify(
               data,
               null,
               2,
             );
+          })
+          .catch((err) => {
+            document.getElementById("result").innerText = err.message;
           });
       }
     </script>

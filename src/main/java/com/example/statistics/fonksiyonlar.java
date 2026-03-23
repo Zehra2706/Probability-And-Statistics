@@ -8,6 +8,7 @@ import java.util.Random;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -116,54 +117,81 @@ public class fonksiyonlar {
     }
     return result+"a= "+a+", k= "+k;
   }
-    @PostMapping("/tabakalıRassal")
-    public Map<String, List<Integer>> stratifiedSampling(
-            @RequestBody tabakasalRequests request) {
 
-        List<Integer> strataSizes = request.getStrataSizes();
-        int totalSampleSize = request.getTotalSampleSize();
+@PostMapping("/tabakalıRassal")
+public ResponseEntity<?> stratifiedSampling(
+        @RequestBody tabakasalRequests request) {
+
+    try {
+        int N = request.gettotalPopulation();
+        int n = request.getsampleCount();
+        List<Integer> strataSizes = request.getstrataPercentages();
 
         Map<String, List<Integer>> result = new LinkedHashMap<>();
-        int population = strataSizes.stream().mapToInt(Integer::intValue).sum();
         Random random = new Random();
 
-        for (int i = 0; i < strataSizes.size(); i++) {
-            int Ni = strataSizes.get(i);
-            int ni = Math.round((float) Ni / population * totalSampleSize);
-
-            // Tabaka içi bireyler
-            List<Integer> individuals = new ArrayList<>();
-            for (int j = 1; j <= Ni; j++) {
-                individuals.add(j);
-            }
-
-            Collections.shuffle(individuals, random);
-
-            result.put(
-                "Tabaka " + (i + 1),
-                individuals.subList(0, Math.min(ni, individuals.size()))
-            );
+        int sum = strataSizes.stream().mapToInt(i -> i).sum();
+        if (sum != N) {
+            throw new RuntimeException("HATA: Tabaka toplamı (" + sum + ") evrene (" + N + ") eşit değil!");
         }
 
-        return result;
+        int start = 0;
+        int totalAssigned = 0; // 🔥 EKLENDİ
+
+        for (int i = 0; i < strataSizes.size(); i++) {
+
+            int size = strataSizes.get(i);
+            int end = start + size;
+
+            int ni;
+
+            if (i == strataSizes.size() - 1) {
+                ni = n - totalAssigned; // 🔴 SON TABAKA
+            } else {
+                ni = (int) Math.floor((size / (double) N) * n);
+                totalAssigned += ni;
+            }
+
+            List<Integer> numbers = new ArrayList<>();
+            for (int j = start; j < end; j++) {
+                numbers.add(j);
+            }
+
+            Collections.shuffle(numbers, random);
+
+            List<Integer> sample = new ArrayList<>(
+                numbers.subList(0, Math.min(ni, numbers.size()))
+            );
+
+            Collections.sort(sample);
+
+            result.put("Tabaka " + (i + 1), sample);
+
+            start = end;
+        }
+
+        return ResponseEntity.ok(result);
+
+    } catch (Exception e) {
+        return ResponseEntity
+                .badRequest()
+                .body(e.getMessage());
     }
-
-
-
+}
     @PostMapping("/ortalama")
-    public double aritmetikOrtalama(@RequestBody List<Integer> numbers) {
+    public double aritmetikOrtalama(@RequestBody List<Double> numbers) {
         if (numbers.isEmpty()) return 0;
 
-        int sum = 0;
-        for (int n : numbers) {
+        double sum = 0;
+        for (Double n : numbers) {
             sum += n;
         }
         return (double) sum / numbers.size();
     }
 
   @PostMapping("basitSeri")
-  public String basitSeri(@RequestBody List<Integer> numbers) {
-      int[] array =numbers.stream().mapToInt(i -> i).toArray();
+  public String basitSeri(@RequestBody List<Double> numbers) {
+      double[] array =numbers.stream().mapToDouble(i -> i).toArray();
       
       int n = array.length;
 
@@ -171,7 +199,7 @@ public class fonksiyonlar {
     for (int i = 0; i < n - 1; i++) {
             for (int j = 0; j < n - i - 1; j++) {
                 if (array[j] > array[j + 1]) {
-                    int temp = array[j];
+                    double temp = array[j];
                     array[j] = array[j + 1];
                     array[j + 1] = temp;
                 }
@@ -184,11 +212,11 @@ public class fonksiyonlar {
   }
 
   @PostMapping("frekansSeri")
-  public String frekansSeri(@RequestBody List<Integer> numbers) {
+  public String frekansSeri(@RequestBody List<Double> numbers) {
     // Frekans sayısı için Map
-    Map<Integer, Integer> frekansMap = new TreeMap<>(); // TreeMap küçükten büyüğe sıralar
+    Map<Double, Integer> frekansMap = new TreeMap<>(); // TreeMap küçükten büyüğe sıralar
 
-    for (int num : numbers) {
+    for (double num : numbers) {
         frekansMap.put(num, frekansMap.getOrDefault(num, 0) + 1);
     }
 
@@ -197,7 +225,7 @@ public class fonksiyonlar {
     html.append("<table border='1' style='border-collapse: collapse;'>");
     html.append("<tr><th>Sayı</th><th>Frekans</th></tr>");
 
-    for (Map.Entry<Integer, Integer> entry : frekansMap.entrySet()) {
+    for (Map.Entry<Double, Integer> entry : frekansMap.entrySet()) {
         html.append("<tr><td>").append(entry.getKey())
             .append("</td><td>").append(entry.getValue())
             .append("</td></tr>");
@@ -209,11 +237,11 @@ public class fonksiyonlar {
     }
 
     @PostMapping("frekansTablosu")
-    public String frekansTablosu(@RequestBody List<Integer> numbers) {
-      int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String frekansTablosu(@RequestBody List<Double> numbers) {
+      double[] array =numbers.stream().mapToDouble(i -> i).toArray();
       int n = array.length;
-      int max=array[0];
-      int min=array[0];
+      double max=array[0];
+      double min=array[0];
       for(int i=1;i<n;i++){
           if(array[i]>max){
               max=array[i];
@@ -222,24 +250,33 @@ public class fonksiyonlar {
               min=array[i];
           }
       }
-      int R=max-min;
+      boolean ondalikliMi = false;
+        for (double num : array) {
+            if (num % 1 != 0) {
+                ondalikliMi = true;
+                break;
+            }
+        }
+      double adim = ondalikliMi ? 0.1 : 1.0;
+      double sinirKaydirma = ondalikliMi ? 0.05 : 0.5;
+      double R=max-min;
       int k=(int)Math.ceil(Math.sqrt(n));
       int h=(int)Math.ceil((double)R/k);
-      int sınıflimitalt[] = new int[k];
+      double sınıflimitalt[] = new double[k];
       for (int i = 0; i < k; i++) {
         sınıflimitalt[i] = min + i * h;
       }
-      int sınıflimitust[] = new int[k];
+      double sınıflimitust[] = new double[k];
       for (int i = 0; i < k; i++) {
-        sınıflimitust[i] = sınıflimitalt[i] + h-1;
+        sınıflimitust[i] = sınıflimitalt[i] + h-adim;
       }
       double sınıfsınıralt[] = new double[k];
       for (int i = 0; i < k; i++) {
-        sınıfsınıralt[i] = sınıflimitalt[i] - 0.5;
+        sınıfsınıralt[i] = sınıflimitalt[i] - sinirKaydirma;
       }
       double sınıfsınırust[] = new double[k];
       for (int i = 0; i < k; i++) {
-        sınıfsınırust[i] = sınıflimitust[i] + 0.5;
+        sınıfsınırust[i] = sınıflimitust[i] + sinirKaydirma;
       }
 
         int frekans[] = new int[k];
@@ -252,7 +289,7 @@ public class fonksiyonlar {
             }
         }
 
-        int SON[]= new int[k];
+        double[] SON = new double[k];
         for(int i=0;i<k;i++){
             SON[i]=(sınıflimitalt[i]+sınıflimitust[i])/2;
         }
@@ -280,15 +317,15 @@ public class fonksiyonlar {
 
         for (int i = 0; i < k; i++) {
             html.append("<tr>");
-            html.append("<td>").append(sınıflimitalt[i]).append("</td>");
-            html.append("<td>").append(sınıflimitust[i]).append("</td>");
-            html.append("<td>").append(sınıfsınıralt[i]).append("</td>");
-            html.append("<td>").append(sınıfsınırust[i]).append("</td>");
+            html.append("<td>").append(String.format("%.2f", sınıflimitalt[i])).append("</td>");
+            html.append("<td>").append(String.format("%.2f", sınıflimitust[i])).append("</td>");
+            html.append("<td>").append(String.format("%.2f", sınıfsınıralt[i])).append("</td>");
+            html.append("<td>").append(String.format("%.2f", sınıfsınırust[i])).append("</td>");
             html.append("<td>").append(frekans[i]).append("</td>");
-            html.append("<td>").append(SON[i]).append("</td>");
-            html.append("<td>").append(oransalFrekans[i]).append("</td>");
+            html.append("<td>").append(String.format("%.2f", SON[i])).append("</td>");
+            html.append("<td>").append(String.format("%.4f", oransalFrekans[i])).append("</td>");
             html.append("<td>").append(eklenikFrekans[i]).append("</td>");
-            html.append("<td>").append(oransalEklenikFrekans[i]).append("</td>");
+            html.append("<td>").append(String.format("%.4f", oransalEklenikFrekans[i])).append("</td>");
             html.append("</tr>");
         }
 
@@ -298,21 +335,21 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/medyan")
-    public double medyan(@RequestBody List<Integer> numbers) {
+    public double medyan(@RequestBody List<Double> numbers) {
         if (numbers.isEmpty()) return 0;
-        List<Integer> sortedNumbers = numbers.stream().sorted().collect(Collectors.toList());
+        List<Double> sortedNumbers = numbers.stream().sorted().collect(Collectors.toList());
         int n = sortedNumbers.size();
         if (n % 2 == 1) {
             return sortedNumbers.get(n / 2);
         } else {
-            int mid1 = sortedNumbers.get(n / 2 - 1);
-            int mid2 = sortedNumbers.get(n / 2);
+            double mid1 = sortedNumbers.get(n / 2 - 1);
+            double mid2 = sortedNumbers.get(n / 2);
             return (mid1 + mid2) / 2.0;
         }
     }
 
     @PostMapping("/mod")
-    public List<Integer> mod(@RequestBody List<Integer> numbers) {
+    public List<Double> mod(@RequestBody List<Integer> numbers) {
     if (numbers.isEmpty()) return List.of(); // boş liste döndür
 
     // Her sayının frekansını hesapla
@@ -323,9 +360,10 @@ public class fonksiyonlar {
     long maxFrequency = frequencyMap.values().stream().mapToLong(v -> v).max().orElse(0);
 
     // Bu frekansa sahip tüm sayıları bul
-    List<Integer> modes = frequencyMap.entrySet().stream()
+    List<Double> modes = frequencyMap.entrySet().stream()
             .filter(entry -> entry.getValue() == maxFrequency)
             .map(Map.Entry::getKey)
+            .map(Double::valueOf)
             .toList();
 
     return modes; // Liste döner, tek mod veya çoklu mod için uygun
@@ -333,12 +371,12 @@ public class fonksiyonlar {
     }
     
     @PostMapping("geometrikOrtalama")
-    public String geometrikOrtalama(@RequestBody List<Integer> numbers) {
-      int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String geometrikOrtalama(@RequestBody List<Double> numbers) {
+      Double[] array = numbers.toArray(new Double[0]);
       int n = array.length;
 
         double product = 1.0;
-        for (int num : array) {
+        for (double num : array) {
             product *= num;
         }
         double geoOrtalama = Math.pow(product, 1.0 / n);
@@ -348,12 +386,12 @@ public class fonksiyonlar {
     }
 
     @PostMapping("harmonikOrtalama")
-    public String harmonikOrtalama(@RequestBody List<Integer> numbers) {
-      int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String harmonikOrtalama(@RequestBody List<Double> numbers) {
+      Double[] array = numbers.toArray(new Double[0]);
       int n = array.length; 
 
         double reciprocalSum = 0.0;
-        for (int num : array) {
+        for (double num : array) {
             if (num != 0) {
                 reciprocalSum += 1.0 / num;
             } else {
@@ -368,14 +406,14 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/varyans")
-    public String varyans(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String varyans(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için varyans hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumSquaredDiffs = 0.0;
-        for (int num : array) {
+        for (double num : array) {
             sumSquaredDiffs += Math.pow(num - mean, 2);
         }
         double variance = sumSquaredDiffs / (n - 1); // Varyans
@@ -385,14 +423,14 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/standartSapma")
-    public String standartSapma(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String standartSapma(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için standart sapma hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumSquaredDiffs = 0.0;
-        for (int num : array) {
+        for (double num : array) {
             sumSquaredDiffs += Math.pow(num - mean, 2);
         }
         double variance = sumSquaredDiffs / (n - 1); // Varyans
@@ -402,14 +440,14 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/oms")
-    public String oms(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String oms(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için standart sapma hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumAbsDiffs = 0.0;   
-        for (int num : array) {
+        for (double num : array) {
             sumAbsDiffs += Math.abs(num - mean);
         }
         double oms = sumAbsDiffs / n;
@@ -418,11 +456,19 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/ceyreklikler")
-    public String ceyreklikler(@RequestBody List<Integer> numbers) {
-      int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String ceyreklikler(@RequestBody List<Double> numbers) {
+      double[] array =numbers.stream().mapToDouble(i -> i).toArray();
       int n = array.length;
-      int max=array[0];
-      int min=array[0];
+      double max=array[0];
+      double min=array[0];
+      boolean ondalikliMi = false;
+
+for (double v : numbers) {
+    if (v % 1 != 0) {   // ondalık kısmı var mı?
+        ondalikliMi = true;
+        break;
+    }
+}
       for(int i=1;i<n;i++){
           if(array[i]>max){
               max=array[i];
@@ -431,20 +477,22 @@ public class fonksiyonlar {
               min=array[i];
           }
       }
-      int R=max-min;
+      double adim = ondalikliMi ? 0.1 : 1.0;
+double sinirKaydirma = ondalikliMi ? 0.05 : 0.5;
+      double R=max-min;
       int k=(int)Math.ceil(Math.sqrt(n));
       int h=(int)Math.ceil((double)R/k);
-      int sınıflimitalt[] = new int[k];
+      double sınıflimitalt[] = new double[(int) k];
       for (int i = 0; i < k; i++) {
         sınıflimitalt[i] = min + i * h;
       }
-      int sınıflimitust[] = new int[k];
+      double sınıflimitust[] = new double[k];
       for (int i = 0; i < k; i++) {
-        sınıflimitust[i] = sınıflimitalt[i] + h-1;
+        sınıflimitust[i] = sınıflimitalt[i] + h-adim;
       }
       double sınıfsınıralt[] = new double[k];
       for (int i = 0; i < k; i++) {
-        sınıfsınıralt[i] = sınıflimitalt[i] - 0.5;
+        sınıfsınıralt[i] = sınıflimitalt[i] - sinirKaydirma;
       }
     //   double sınıfsınırust[] = new double[k];
     //   for (int i = 0; i < k; i++) {
@@ -502,14 +550,14 @@ public class fonksiyonlar {
     }
 
     @PostMapping("/carpıklık")
-    public String carpıklık(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String carpıklık(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için carpıklık hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumSquaredDiffs = 0.0;
-        for (int num : array) {
+        for (Double num : array) {
             sumSquaredDiffs += Math.pow(num - mean, 3);
         }
         double carpıklık = sumSquaredDiffs / (n - 1); // Çarpıklık
@@ -518,14 +566,14 @@ public class fonksiyonlar {
         return entity;
     }  
     @PostMapping("/basıklık")
-    public String basıklık(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String basıklık(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için basıklık hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumSquaredDiffs = 0.0;
-        for (int num : array) {
+        for (Double num : array) {
             sumSquaredDiffs += Math.pow(num - mean, 4);
         }
         double basıklık = sumSquaredDiffs / (n - 1); // Basıklık
@@ -534,14 +582,14 @@ public class fonksiyonlar {
         return entity;
     }  
     @PostMapping("/dk")
-    public String dk(@RequestBody List<Integer> numbers) {
-        int[] array =numbers.stream().mapToInt(i -> i).toArray();
+    public String dk(@RequestBody List<Double> numbers) {
+        Double[] array = numbers.toArray(new Double[0]);
         int n = array.length;
         if (n == 0) return "Hata: Boş liste için standart sapma hesaplanamaz.";
 
         double mean = aritmetikOrtalama(numbers);
         double sumSquaredDiffs = 0.0;
-        for (int num : array) {
+        for (Double num : array) {
             sumSquaredDiffs += Math.pow(num - mean, 2);
         }
         double variance = sumSquaredDiffs / (n - 1); // Varyans
